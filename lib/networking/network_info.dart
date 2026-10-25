@@ -35,7 +35,9 @@ class LocalNetworkInfo {
   int get port => NetworkConstants.serverPort;
 
   static int _preferLan(String a, String b) =>
-      _score(b).compareTo(_score(a)) == 0 ? a.compareTo(b) : _score(b).compareTo(_score(a));
+      _score(b).compareTo(_score(a)) == 0
+      ? a.compareTo(b)
+      : _score(b).compareTo(_score(a));
 
   static int _score(String ip) {
     if (ip.startsWith('192.168.')) {

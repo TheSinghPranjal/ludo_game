@@ -5,11 +5,11 @@ enum PlayerColor {
   blue;
 
   String get displayName => switch (this) {
-        PlayerColor.green => 'Green',
-        PlayerColor.yellow => 'Yellow',
-        PlayerColor.red => 'Red',
-        PlayerColor.blue => 'Blue',
-      };
+    PlayerColor.green => 'Green',
+    PlayerColor.yellow => 'Yellow',
+    PlayerColor.red => 'Red',
+    PlayerColor.blue => 'Blue',
+  };
 
   String get id => name;
 

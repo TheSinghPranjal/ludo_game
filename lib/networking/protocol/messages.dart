@@ -52,40 +52,40 @@ sealed class ClientMessage {
       final commandId = json['commandId'] as String? ?? '';
       return switch (type) {
         'JOIN_GAME' => JoinGameMessage(
-            commandId: commandId,
-            name: json['name'] as String? ?? 'Player',
-            playerId: json['playerId'] as String?,
-            reconnectToken: json['reconnectToken'] as String?,
-            requestedColor: json['requestedColor'] as String?,
-          ),
+          commandId: commandId,
+          name: json['name'] as String? ?? 'Player',
+          playerId: json['playerId'] as String?,
+          reconnectToken: json['reconnectToken'] as String?,
+          requestedColor: json['requestedColor'] as String?,
+        ),
         'LEAVE_GAME' => LeaveGameMessage(commandId: commandId),
         'READY' => ReadyMessage(
-            commandId: commandId,
-            ready: json['ready'] as bool? ?? true,
-          ),
+          commandId: commandId,
+          ready: json['ready'] as bool? ?? true,
+        ),
         'CLAIM_COLOR' => ClaimColorMessage(
-            commandId: commandId,
-            color: json['color'] as String,
-          ),
+          commandId: commandId,
+          color: json['color'] as String,
+        ),
         'START_GAME' => StartGameMessage(commandId: commandId),
         'ROLL_DICE' => RollDiceMessage(commandId: commandId),
         'MOVE_TOKEN' => MoveTokenMessage(
-            commandId: commandId,
-            tokenId: json['tokenId'] as String,
-          ),
+          commandId: commandId,
+          tokenId: json['tokenId'] as String,
+        ),
         'REQUEST_STATE' => RequestStateMessage(commandId: commandId),
         'PING' => PingMessage(
-            commandId: commandId,
-            nonce: json['nonce'] as String? ?? '',
-          ),
+          commandId: commandId,
+          nonce: json['nonce'] as String? ?? '',
+        ),
         'PONG' => ClientPongMessage(
-            commandId: commandId,
-            nonce: json['nonce'] as String? ?? '',
-          ),
+          commandId: commandId,
+          nonce: json['nonce'] as String? ?? '',
+        ),
         'SET_AI_ENABLED' => SetAiEnabledMessage(
-            commandId: commandId,
-            enabled: json['enabled'] as bool? ?? false,
-          ),
+          commandId: commandId,
+          enabled: json['enabled'] as bool? ?? false,
+        ),
         'DICE_RESULT' || 'TOKEN_POSITION' || 'SET_WINNER' =>
           FabricatedClientMessage(commandId: commandId, rawType: type!),
         _ => null,
@@ -115,13 +115,13 @@ class JoinGameMessage extends ClientMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'JOIN_GAME',
-        'commandId': commandId,
-        'name': name,
-        'playerId': playerId,
-        'reconnectToken': reconnectToken,
-        'requestedColor': requestedColor,
-      };
+    'type': 'JOIN_GAME',
+    'commandId': commandId,
+    'name': name,
+    'playerId': playerId,
+    'reconnectToken': reconnectToken,
+    'requestedColor': requestedColor,
+  };
 }
 
 class LeaveGameMessage extends ClientMessage {
@@ -132,9 +132,9 @@ class LeaveGameMessage extends ClientMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'LEAVE_GAME',
-        'commandId': commandId,
-      };
+    'type': 'LEAVE_GAME',
+    'commandId': commandId,
+  };
 }
 
 class ReadyMessage extends ClientMessage {
@@ -147,10 +147,10 @@ class ReadyMessage extends ClientMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'READY',
-        'commandId': commandId,
-        'ready': ready,
-      };
+    'type': 'READY',
+    'commandId': commandId,
+    'ready': ready,
+  };
 }
 
 class ClaimColorMessage extends ClientMessage {
@@ -163,10 +163,10 @@ class ClaimColorMessage extends ClientMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'CLAIM_COLOR',
-        'commandId': commandId,
-        'color': color,
-      };
+    'type': 'CLAIM_COLOR',
+    'commandId': commandId,
+    'color': color,
+  };
 }
 
 class StartGameMessage extends ClientMessage {
@@ -177,9 +177,9 @@ class StartGameMessage extends ClientMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'START_GAME',
-        'commandId': commandId,
-      };
+    'type': 'START_GAME',
+    'commandId': commandId,
+  };
 }
 
 class RollDiceMessage extends ClientMessage {
@@ -190,9 +190,9 @@ class RollDiceMessage extends ClientMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'ROLL_DICE',
-        'commandId': commandId,
-      };
+    'type': 'ROLL_DICE',
+    'commandId': commandId,
+  };
 }
 
 class MoveTokenMessage extends ClientMessage {
@@ -205,10 +205,10 @@ class MoveTokenMessage extends ClientMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'MOVE_TOKEN',
-        'commandId': commandId,
-        'tokenId': tokenId,
-      };
+    'type': 'MOVE_TOKEN',
+    'commandId': commandId,
+    'tokenId': tokenId,
+  };
 }
 
 class RequestStateMessage extends ClientMessage {
@@ -219,9 +219,9 @@ class RequestStateMessage extends ClientMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'REQUEST_STATE',
-        'commandId': commandId,
-      };
+    'type': 'REQUEST_STATE',
+    'commandId': commandId,
+  };
 }
 
 class PingMessage extends ClientMessage {
@@ -234,10 +234,10 @@ class PingMessage extends ClientMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'PING',
-        'commandId': commandId,
-        'nonce': nonce,
-      };
+    'type': 'PING',
+    'commandId': commandId,
+    'nonce': nonce,
+  };
 }
 
 class ClientPongMessage extends ClientMessage {
@@ -250,10 +250,10 @@ class ClientPongMessage extends ClientMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'PONG',
-        'commandId': commandId,
-        'nonce': nonce,
-      };
+    'type': 'PONG',
+    'commandId': commandId,
+    'nonce': nonce,
+  };
 }
 
 class SetAiEnabledMessage extends ClientMessage {
@@ -266,10 +266,10 @@ class SetAiEnabledMessage extends ClientMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'SET_AI_ENABLED',
-        'commandId': commandId,
-        'enabled': enabled,
-      };
+    'type': 'SET_AI_ENABLED',
+    'commandId': commandId,
+    'enabled': enabled,
+  };
 }
 
 class FabricatedClientMessage extends ClientMessage {
@@ -311,6 +311,8 @@ sealed class ServerMessage {
         'PLAYER_WON' => PlayerWonMessage.fromJson(json),
         'GAME_FINISHED' => GameFinishedMessage.fromJson(json),
         'CURRENT_GAME_STATE' => CurrentGameStateMessage.fromJson(json),
+        'TURN_TIMER_UPDATE' => TurnTimerUpdateMessage.fromJson(json),
+        'TURN_AUTO_PLAYED' => TurnAutoPlayedMessage.fromJson(json),
         'PONG' => PongMessage.fromJson(json),
         'PING' => ServerPingMessage.fromJson(json),
         'ERROR' => ErrorMessage.fromJson(json),
@@ -328,9 +330,7 @@ class PlayerJoinedMessage extends ServerMessage {
   final Map<String, dynamic> game;
 
   factory PlayerJoinedMessage.fromJson(Map<String, dynamic> json) =>
-      PlayerJoinedMessage(
-        game: Map<String, dynamic>.from(json['game'] as Map),
-      );
+      PlayerJoinedMessage(game: Map<String, dynamic>.from(json['game'] as Map));
 
   @override
   Map<String, dynamic> toJson() => {'type': 'PLAYER_JOINED', 'game': game};
@@ -349,10 +349,10 @@ class PlayerLeftMessage extends ServerMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'PLAYER_LEFT',
-        'playerId': playerId,
-        'game': game,
-      };
+    'type': 'PLAYER_LEFT',
+    'playerId': playerId,
+    'game': game,
+  };
 }
 
 class PlayerReadyMessage extends ServerMessage {
@@ -360,9 +360,7 @@ class PlayerReadyMessage extends ServerMessage {
   final Map<String, dynamic> game;
 
   factory PlayerReadyMessage.fromJson(Map<String, dynamic> json) =>
-      PlayerReadyMessage(
-        game: Map<String, dynamic>.from(json['game'] as Map),
-      );
+      PlayerReadyMessage(game: Map<String, dynamic>.from(json['game'] as Map));
 
   @override
   Map<String, dynamic> toJson() => {'type': 'PLAYER_READY', 'game': game};
@@ -402,12 +400,12 @@ class TurnStartedMessage extends ServerMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'TURN_STARTED',
-        'playerId': playerId,
-        'turnId': turnId,
-        'turnNumber': turnNumber,
-        'game': game,
-      };
+    'type': 'TURN_STARTED',
+    'playerId': playerId,
+    'turnId': turnId,
+    'turnNumber': turnNumber,
+    'game': game,
+  };
 }
 
 class DiceResultMessage extends ServerMessage {
@@ -436,13 +434,13 @@ class DiceResultMessage extends ServerMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'DICE_RESULT',
-        'playerId': playerId,
-        'value': value,
-        'turnId': turnId,
-        'forfeited': forfeited,
-        'game': game,
-      };
+    'type': 'DICE_RESULT',
+    'playerId': playerId,
+    'value': value,
+    'turnId': turnId,
+    'forfeited': forfeited,
+    'game': game,
+  };
 }
 
 class ValidMovesMessage extends ServerMessage {
@@ -452,17 +450,16 @@ class ValidMovesMessage extends ServerMessage {
 
   factory ValidMovesMessage.fromJson(Map<String, dynamic> json) =>
       ValidMovesMessage(
-        tokenIds:
-            (json['tokenIds'] as List).map((e) => e as String).toList(),
+        tokenIds: (json['tokenIds'] as List).map((e) => e as String).toList(),
         game: Map<String, dynamic>.from(json['game'] as Map),
       );
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'VALID_MOVES',
-        'tokenIds': tokenIds,
-        'game': game,
-      };
+    'type': 'VALID_MOVES',
+    'tokenIds': tokenIds,
+    'game': game,
+  };
 }
 
 class TokenMovedMessage extends ServerMessage {
@@ -480,30 +477,29 @@ class TokenMovedMessage extends ServerMessage {
   final List<BoardPosition> path;
   final Map<String, dynamic> game;
 
-  factory TokenMovedMessage.fromJson(Map<String, dynamic> json) =>
-      TokenMovedMessage(
-        tokenId: json['tokenId'] as String,
-        from: BoardPosition.fromJson(
-          Map<String, dynamic>.from(json['from'] as Map),
-        ),
-        to: BoardPosition.fromJson(Map<String, dynamic>.from(json['to'] as Map)),
-        path: (json['path'] as List)
-            .map(
-              (e) => BoardPosition.fromJson(Map<String, dynamic>.from(e as Map)),
-            )
-            .toList(),
-        game: Map<String, dynamic>.from(json['game'] as Map),
-      );
+  factory TokenMovedMessage.fromJson(
+    Map<String, dynamic> json,
+  ) => TokenMovedMessage(
+    tokenId: json['tokenId'] as String,
+    from: BoardPosition.fromJson(
+      Map<String, dynamic>.from(json['from'] as Map),
+    ),
+    to: BoardPosition.fromJson(Map<String, dynamic>.from(json['to'] as Map)),
+    path: (json['path'] as List)
+        .map((e) => BoardPosition.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList(),
+    game: Map<String, dynamic>.from(json['game'] as Map),
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'TOKEN_MOVED',
-        'tokenId': tokenId,
-        'from': from.toJson(),
-        'to': to.toJson(),
-        'path': path.map((p) => p.toJson()).toList(),
-        'game': game,
-      };
+    'type': 'TOKEN_MOVED',
+    'tokenId': tokenId,
+    'from': from.toJson(),
+    'to': to.toJson(),
+    'path': path.map((p) => p.toJson()).toList(),
+    'game': game,
+  };
 }
 
 class TokenCapturedMessage extends ServerMessage {
@@ -526,11 +522,11 @@ class TokenCapturedMessage extends ServerMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'TOKEN_CAPTURED',
-        'tokenId': tokenId,
-        'byTokenId': byTokenId,
-        'game': game,
-      };
+    'type': 'TOKEN_CAPTURED',
+    'tokenId': tokenId,
+    'byTokenId': byTokenId,
+    'game': game,
+  };
 }
 
 class TokenReachedHomeMessage extends ServerMessage {
@@ -546,10 +542,10 @@ class TokenReachedHomeMessage extends ServerMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'TOKEN_REACHED_HOME',
-        'tokenId': tokenId,
-        'game': game,
-      };
+    'type': 'TOKEN_REACHED_HOME',
+    'tokenId': tokenId,
+    'game': game,
+  };
 }
 
 class TurnChangedMessage extends ServerMessage {
@@ -578,13 +574,13 @@ class TurnChangedMessage extends ServerMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'TURN_CHANGED',
-        'playerId': playerId,
-        'turnId': turnId,
-        'turnNumber': turnNumber,
-        'reason': reason,
-        'game': game,
-      };
+    'type': 'TURN_CHANGED',
+    'playerId': playerId,
+    'turnId': turnId,
+    'turnNumber': turnNumber,
+    'reason': reason,
+    'game': game,
+  };
 }
 
 class PlayerWonMessage extends ServerMessage {
@@ -600,10 +596,10 @@ class PlayerWonMessage extends ServerMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'PLAYER_WON',
-        'playerId': playerId,
-        'game': game,
-      };
+    'type': 'PLAYER_WON',
+    'playerId': playerId,
+    'game': game,
+  };
 }
 
 class GameFinishedMessage extends ServerMessage {
@@ -619,10 +615,10 @@ class GameFinishedMessage extends ServerMessage {
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'GAME_FINISHED',
-        'winnerId': winnerId,
-        'game': game,
-      };
+    'type': 'GAME_FINISHED',
+    'winnerId': winnerId,
+    'game': game,
+  };
 }
 
 class CurrentGameStateMessage extends ServerMessage {
@@ -635,10 +631,57 @@ class CurrentGameStateMessage extends ServerMessage {
       );
 
   @override
+  Map<String, dynamic> toJson() => {'type': 'CURRENT_GAME_STATE', 'game': game};
+}
+
+class TurnTimerUpdateMessage extends ServerMessage {
+  TurnTimerUpdateMessage({
+    required this.secondsRemaining,
+    required this.turnId,
+  });
+
+  final int secondsRemaining;
+  final String turnId;
+
+  factory TurnTimerUpdateMessage.fromJson(Map<String, dynamic> json) =>
+      TurnTimerUpdateMessage(
+        secondsRemaining: json['secondsRemaining'] as int,
+        turnId: json['turnId'] as String,
+      );
+
+  @override
   Map<String, dynamic> toJson() => {
-        'type': 'CURRENT_GAME_STATE',
-        'game': game,
-      };
+    'type': 'TURN_TIMER_UPDATE',
+    'secondsRemaining': secondsRemaining,
+    'turnId': turnId,
+  };
+}
+
+class TurnAutoPlayedMessage extends ServerMessage {
+  TurnAutoPlayedMessage({
+    required this.playerId,
+    required this.game,
+    this.tokenId,
+  });
+
+  final String playerId;
+  final String? tokenId;
+  final Map<String, dynamic> game;
+
+  factory TurnAutoPlayedMessage.fromJson(Map<String, dynamic> json) =>
+      TurnAutoPlayedMessage(
+        playerId: json['playerId'] as String,
+        tokenId: json['tokenId'] as String?,
+        game: Map<String, dynamic>.from(json['game'] as Map),
+      );
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'type': 'TURN_AUTO_PLAYED',
+    'playerId': playerId,
+    'tokenId': tokenId,
+    'game': game,
+  };
 }
 
 class PongMessage extends ServerMessage {
@@ -669,16 +712,16 @@ class ErrorMessage extends ServerMessage {
   final String message;
 
   factory ErrorMessage.fromJson(Map<String, dynamic> json) => ErrorMessage(
-        code: json['code'] as String? ?? 'unknown',
-        message: json['message'] as String? ?? 'Unknown error',
-      );
+    code: json['code'] as String? ?? 'unknown',
+    message: json['message'] as String? ?? 'Unknown error',
+  );
 
   @override
   Map<String, dynamic> toJson() => {
-        'type': 'ERROR',
-        'code': code,
-        'message': message,
-      };
+    'type': 'ERROR',
+    'code': code,
+    'message': message,
+  };
 }
 
 class HostDisconnectedMessage extends ServerMessage {

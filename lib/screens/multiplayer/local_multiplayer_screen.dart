@@ -21,7 +21,7 @@ class LocalMultiplayerScreen extends ConsumerWidget {
               const LudoLogo(size: 48),
               const SizedBox(height: 12),
               const Text(
-                'Play on the same Wi-Fi or hotspot.\nNo internet required.',
+                'Host a game on this Wi-Fi or hotspot.\nFriends join from their own phones.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textMuted),
               ),
@@ -45,7 +45,10 @@ class LocalMultiplayerScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Back', style: TextStyle(color: Colors.white70)),
+                child: const Text(
+                  'Back',
+                  style: TextStyle(color: Colors.white70),
+                ),
               ),
               const Spacer(),
             ],

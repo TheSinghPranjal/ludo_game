@@ -49,9 +49,10 @@ abstract final class GameRules {
     if (dest is HomePosition || dest is BasePosition) {
       return false;
     }
-    final occupants = tokensAt(state, dest)
-        .where((t) => t.playerId != mover.playerId)
-        .toList();
+    final occupants = tokensAt(
+      state,
+      dest,
+    ).where((t) => t.playerId != mover.playerId).toList();
     if (occupants.isEmpty) {
       return false;
     }
@@ -62,8 +63,10 @@ abstract final class GameRules {
     return byPlayer.values.any((count) => count >= 2);
   }
 
+  /// Tokens sharing a main-track square. Base, home path and home are private
+  /// to each color (their positions are color-relative), so nothing meets there.
   static List<TokenState> tokensAt(GameState state, BoardPosition position) {
-    if (position is HomePosition || position is BasePosition) {
+    if (position is! TrackPosition) {
       return const [];
     }
     return state.tokens.where((t) => t.position == position).toList();
@@ -77,9 +80,10 @@ abstract final class GameRules {
     if (BoardMap.isSafe(dest) || dest is HomePosition || dest is BasePosition) {
       return const [];
     }
-    final opponents = tokensAt(state, dest)
-        .where((t) => t.playerId != mover.playerId)
-        .toList();
+    final opponents = tokensAt(
+      state,
+      dest,
+    ).where((t) => t.playerId != mover.playerId).toList();
     if (opponents.isEmpty) {
       return const [];
     }
@@ -121,10 +125,27 @@ abstract final class GameRules {
     return tokens.every((t) => t.state == TokenLogicalState.home);
   }
 
-  static PlayerColor? nextOccupiedColor(
-    GameState state,
-    PlayerColor current,
-  ) {
+  /// Total squares travelled by a player's tokens; used to rank non-winners.
+  static int progressOf(GameState state, String playerId) {
+    final player = state.playerById(playerId);
+    if (player == null) {
+      return 0;
+    }
+    final fullLap = BoardMap.stepsToHome(
+      player.color,
+      TrackPosition(BoardMap.startIndex(player.color)),
+    )!;
+    var total = 0;
+    for (final token in state.tokensFor(playerId)) {
+      final remaining = BoardMap.stepsToHome(player.color, token.position);
+      if (remaining != null) {
+        total += fullLap + 1 - remaining;
+      }
+    }
+    return total;
+  }
+
+  static PlayerColor? nextOccupiedColor(GameState state, PlayerColor current) {
     final occupied = state.players
         .where((p) => p.isConnected || p.isAi)
         .map((p) => p.color)
@@ -150,5 +171,41 @@ abstract final class GameRules {
       }
     }
     return null;
+  }
+
+  /// Deterministic timeout choice: capture, then home, then leave base, then slot order.
+  static String? pickAutoMove(GameState state) {
+    final ids = [...state.validMoves]..sort();
+    if (ids.isEmpty) {
+      return null;
+    }
+    final player = state.currentPlayer;
+    if (player == null || state.diceValue == null) {
+      return ids.first;
+    }
+    String? capture;
+    String? home;
+    String? leaveBase;
+    for (final id in ids) {
+      final token = state.tokenById(id);
+      final dest = TokenMovement.destination(
+        color: player.color,
+        current: token.position,
+        dice: state.diceValue!,
+      );
+      if (dest == null) {
+        continue;
+      }
+      if (capture == null && capturableAt(state, token, dest).isNotEmpty) {
+        capture = id;
+      }
+      if (home == null && dest is HomePosition) {
+        home = id;
+      }
+      if (leaveBase == null && token.position is BasePosition) {
+        leaveBase = id;
+      }
+    }
+    return capture ?? home ?? leaveBase ?? ids.first;
   }
 }

@@ -5,12 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants.dart';
 import '../../state/providers/session_provider.dart';
 
+/// Development-only overlay. Never mounted on the production game screen.
 class DebugPanel extends ConsumerWidget {
   const DebugPanel({super.key});
 
+  static const enabled = false;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!kDebugMode) {
+    if (!kDebugMode || !enabled) {
       return const SizedBox.shrink();
     }
     final session = ref.watch(sessionProvider);
@@ -30,7 +33,13 @@ class DebugPanel extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(session.isHost ? 'HOST' : 'CLIENT'),
+              Text(
+                session.isHost
+                    ? 'HOST'
+                    : session.isPassAndPlay
+                    ? 'HOTSEAT'
+                    : 'CLIENT',
+              ),
               Text('rev ${game.revision} turn ${game.turnNumber}'),
               Text('player ${game.currentPlayer?.color.name ?? "-"}'),
               Text('dice ${game.diceValue ?? "-"} rolled=${game.diceRolled}'),

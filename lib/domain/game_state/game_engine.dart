@@ -8,10 +8,7 @@ import '../rules/game_rules.dart';
 import '../rules/movement.dart';
 
 class EngineResult {
-  const EngineResult({
-    required this.state,
-    this.events = const [],
-  });
+  const EngineResult({required this.state, this.events = const []});
 
   final GameState state;
   final List<EngineEvent> events;
@@ -55,10 +52,7 @@ class TokenMovedEvent extends EngineEvent {
 }
 
 class TokenCapturedEvent extends EngineEvent {
-  const TokenCapturedEvent({
-    required this.tokenId,
-    required this.byTokenId,
-  });
+  const TokenCapturedEvent({required this.tokenId, required this.byTokenId});
 
   final String tokenId;
   final String byTokenId;
@@ -93,11 +87,18 @@ class GameFinishedEvent extends EngineEvent {
   final String winnerId;
 }
 
+class TurnAutoPlayedEvent extends EngineEvent {
+  const TurnAutoPlayedEvent({required this.playerId, this.tokenId});
+
+  final String playerId;
+  final String? tokenId;
+}
+
 /// Pure, host-side rules engine. Flame must never call this.
 class GameEngine {
   GameEngine({required DiceService diceService, Uuid? uuid})
-      : _dice = diceService,
-        _uuid = uuid ?? const Uuid();
+    : _dice = diceService,
+      _uuid = uuid ?? const Uuid();
 
   final DiceService _dice;
   final Uuid _uuid;
@@ -114,17 +115,14 @@ class GameEngine {
       throw GameException(GameErrorCode.unknownPlayer, 'Player already joined');
     }
     final players = [...state.players, player];
-    return state.copyWith(
-      players: players,
-      tokens: GameState.tokensForPlayers(players),
-    ).bumped();
+    return state
+        .copyWith(players: players, tokens: GameState.tokensForPlayers(players))
+        .bumped();
   }
 
   GameState removePlayer(GameState state, String playerId) {
-    final players =
-        state.players.where((p) => p.playerId != playerId).toList();
-    final tokens =
-        state.tokens.where((t) => t.playerId != playerId).toList();
+    final players = state.players.where((p) => p.playerId != playerId).toList();
+    final tokens = state.tokens.where((t) => t.playerId != playerId).toList();
     var next = state.copyWith(players: players, tokens: tokens).bumped();
     if (state.status == GameStatus.active &&
         state.currentPlayerId == playerId &&
@@ -136,8 +134,11 @@ class GameEngine {
 
   GameState setReady(GameState state, String playerId, bool ready) {
     _assertLobby(state);
-    return _updatePlayer(state, playerId, (p) => p.copyWith(isReady: ready))
-        .bumped();
+    return _updatePlayer(
+      state,
+      playerId,
+      (p) => p.copyWith(isReady: ready),
+    ).bumped();
   }
 
   GameState claimColor(GameState state, String playerId, PlayerColor color) {
@@ -177,8 +178,7 @@ class GameEngine {
   GameState returnToLobby(GameState state) {
     final players = [
       for (final player in state.players)
-        if (!player.isAi)
-          player.copyWith(isReady: false, clearRank: true),
+        if (!player.isAi) player.copyWith(isReady: false, clearRank: true),
     ];
     if (players.isEmpty) {
       throw GameException(GameErrorCode.notEnoughPlayers, 'No players remain');
@@ -201,6 +201,7 @@ class GameEngine {
       aiEnabled: state.aiEnabled,
       lastCaptureTokenId: null,
       finishedOrder: const [],
+      mode: state.mode,
     );
   }
 
@@ -226,32 +227,32 @@ class GameEngine {
     );
     final firstId = players.firstWhere((p) => p.color == firstColor).playerId;
     final turnId = _uuid.v4();
-    final started = state.copyWith(
-      status: GameStatus.active,
-      players: players,
-      tokens: GameState.tokensForPlayers(players),
-      currentPlayerId: firstId,
-      turnNumber: 1,
-      diceRolled: false,
-      consecutiveSixes: 0,
-      validMoves: const [],
-      phase: TurnPhase.waitingForRoll,
-      turnId: turnId,
-      clearDiceValue: true,
-      clearWinner: true,
-      clearLastCapture: true,
-      forfeitedSixes: false,
-      finishedOrder: const [],
-    ).bumped();
+    final started = state
+        .copyWith(
+          status: GameStatus.active,
+          players: players,
+          tokens: GameState.tokensForPlayers(players),
+          currentPlayerId: firstId,
+          turnNumber: 1,
+          diceRolled: false,
+          consecutiveSixes: 0,
+          validMoves: const [],
+          phase: TurnPhase.waitingForRoll,
+          turnId: turnId,
+          clearDiceValue: true,
+          clearWinner: true,
+          clearLastCapture: true,
+          forfeitedSixes: false,
+          finishedOrder: const [],
+          turnTimerSecondsRemaining: TimingConstants.turnTimerSeconds,
+          lastTurnWasAutoPlayed: false,
+        )
+        .bumped();
 
     return EngineResult(
       state: started,
       events: [
-        TurnChangedEvent(
-          playerId: firstId,
-          turnId: turnId,
-          turnNumber: 1,
-        ),
+        TurnChangedEvent(playerId: firstId, turnId: turnId, turnNumber: 1),
       ],
     );
   }
@@ -289,6 +290,7 @@ class GameEngine {
       forfeitedSixes: forfeited,
       lastCaptureTokenId: null,
       clearLastCapture: true,
+      lastTurnWasAutoPlayed: false,
     );
 
     final events = <EngineEvent>[
@@ -309,10 +311,9 @@ class GameEngine {
     }
 
     final moves = GameRules.validMoves(next);
-    next = next.copyWith(
-      validMoves: moves,
-      phase: TurnPhase.waitingForMove,
-    ).bumped();
+    next = next
+        .copyWith(validMoves: moves, phase: TurnPhase.waitingForMove)
+        .bumped();
     events.add(ValidMovesEvent(moves));
 
     if (moves.isEmpty) {
@@ -429,25 +430,32 @@ class GameEngine {
 
     if (GameRules.isWinner(next, playerId)) {
       final order = [...state.finishedOrder, playerId];
-      final remaining = next.players
-          .where((p) => !order.contains(p.playerId))
-          .map((p) => p.playerId)
-          .toList();
+      final remaining =
+          next.players
+              .where((p) => !order.contains(p.playerId))
+              .map((p) => p.playerId)
+              .toList()
+            ..sort(
+              (a, b) => GameRules.progressOf(
+                next,
+                b,
+              ).compareTo(GameRules.progressOf(next, a)),
+            );
+      final standings = [...order, ...remaining];
       final players = [
         for (final p in next.players)
-          if (p.playerId == playerId)
-            p.copyWith(rank: 1)
-          else
-            p,
+          p.copyWith(rank: standings.indexOf(p.playerId) + 1),
       ];
-      next = next.copyWith(
-        status: GameStatus.finished,
-        phase: TurnPhase.finished,
-        winnerId: playerId,
-        finishedOrder: [...order, ...remaining],
-        players: players,
-        currentPlayerId: playerId,
-      ).bumped();
+      next = next
+          .copyWith(
+            status: GameStatus.finished,
+            phase: TurnPhase.finished,
+            winnerId: playerId,
+            finishedOrder: standings,
+            players: players,
+            currentPlayerId: playerId,
+          )
+          .bumped();
       events
         ..add(PlayerWonEvent(playerId))
         ..add(GameFinishedEvent(playerId));
@@ -476,6 +484,52 @@ class GameEngine {
     }
 
     return EngineResult(state: next, events: events);
+  }
+
+  /// Authoritative timeout: same secure dice path, then a deterministic auto-move.
+  EngineResult expireTurn(GameState state) {
+    _assertActive(state);
+    if (!state.canRoll && !state.canMove) {
+      return EngineResult(state: state);
+    }
+    final playerId = state.currentPlayerId;
+    if (playerId == null) {
+      return EngineResult(state: state);
+    }
+
+    var events = <EngineEvent>[];
+    var next = state;
+    String? movedToken;
+
+    if (next.canRoll) {
+      final rolled = rollDice(next, playerId);
+      next = rolled.state;
+      events = [...events, ...rolled.events];
+    }
+
+    if (next.canMove) {
+      final tokenId = GameRules.pickAutoMove(next);
+      if (tokenId != null) {
+        movedToken = tokenId;
+        final moved = moveToken(next, playerId, tokenId);
+        next = moved.state;
+        events = [...events, ...moved.events];
+      }
+    }
+
+    next = next.copyWith(lastTurnWasAutoPlayed: true);
+    events.add(TurnAutoPlayedEvent(playerId: playerId, tokenId: movedToken));
+    return EngineResult(state: next, events: events);
+  }
+
+  GameState tickTimer(GameState state) {
+    if (state.status != GameStatus.active) {
+      return state;
+    }
+    final remaining = state.turnTimerSecondsRemaining - 1;
+    return state.copyWith(
+      turnTimerSecondsRemaining: remaining < 0 ? 0 : remaining,
+    );
   }
 
   GameState rejectFabricatedDice(GameState state) {
@@ -530,13 +584,17 @@ class GameEngine {
   }
 
   GameState _prepareExtraRoll(GameState state) {
-    return state.copyWith(
-      diceRolled: false,
-      validMoves: const [],
-      phase: TurnPhase.waitingForRoll,
-      turnId: _uuid.v4(),
-      forfeitedSixes: false,
-    ).bumped();
+    return state
+        .copyWith(
+          diceRolled: false,
+          validMoves: const [],
+          phase: TurnPhase.waitingForRoll,
+          turnId: _uuid.v4(),
+          forfeitedSixes: false,
+          turnTimerSecondsRemaining: TimingConstants.turnTimerSeconds,
+          lastTurnWasAutoPlayed: false,
+        )
+        .bumped();
   }
 
   EngineResult _advanceTurn(GameState state, {String? reason}) {
@@ -550,17 +608,21 @@ class GameEngine {
     }
     final nextId = GameRules.playerIdForColor(state, nextColor)!;
     final turnId = _uuid.v4();
-    final next = state.copyWith(
-      currentPlayerId: nextId,
-      turnNumber: state.turnNumber + 1,
-      diceRolled: false,
-      consecutiveSixes: 0,
-      validMoves: const [],
-      phase: TurnPhase.waitingForRoll,
-      turnId: turnId,
-      forfeitedSixes: false,
-      clearLastCapture: true,
-    ).bumped();
+    final next = state
+        .copyWith(
+          currentPlayerId: nextId,
+          turnNumber: state.turnNumber + 1,
+          diceRolled: false,
+          consecutiveSixes: 0,
+          validMoves: const [],
+          phase: TurnPhase.waitingForRoll,
+          turnId: turnId,
+          forfeitedSixes: false,
+          clearLastCapture: true,
+          turnTimerSecondsRemaining: TimingConstants.turnTimerSeconds,
+          lastTurnWasAutoPlayed: false,
+        )
+        .bumped();
     return EngineResult(
       state: next,
       events: [

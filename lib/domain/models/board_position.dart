@@ -33,8 +33,7 @@ class BasePosition extends BoardPosition {
   Map<String, dynamic> toJson() => {'kind': 'base', 'slot': slot};
 
   @override
-  bool operator ==(Object other) =>
-      other is BasePosition && other.slot == slot;
+  bool operator ==(Object other) => other is BasePosition && other.slot == slot;
 
   @override
   int get hashCode => Object.hash('base', slot);

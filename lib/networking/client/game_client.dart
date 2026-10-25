@@ -61,11 +61,7 @@ class GameClient {
     }
   }
 
-  void join({
-    required String name,
-    String? playerId,
-    String? reconnectToken,
-  }) {
+  void join({required String name, String? playerId, String? reconnectToken}) {
     send(
       JoinGameMessage(
         commandId: _uuid.v4(),

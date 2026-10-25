@@ -18,10 +18,7 @@ class TokenState {
   final BoardPosition position;
   final TokenLogicalState state;
 
-  TokenState copyWith({
-    BoardPosition? position,
-    TokenLogicalState? state,
-  }) {
+  TokenState copyWith({BoardPosition? position, TokenLogicalState? state}) {
     return TokenState(
       tokenId: tokenId,
       playerId: playerId,
@@ -33,13 +30,13 @@ class TokenState {
   }
 
   Map<String, dynamic> toJson() => {
-        'tokenId': tokenId,
-        'playerId': playerId,
-        'colorId': colorId,
-        'slot': slot,
-        'position': position.toJson(),
-        'state': state.name,
-      };
+    'tokenId': tokenId,
+    'playerId': playerId,
+    'colorId': colorId,
+    'slot': slot,
+    'position': position.toJson(),
+    'state': state.name,
+  };
 
   factory TokenState.fromJson(Map<String, dynamic> json) {
     return TokenState(

@@ -35,11 +35,9 @@ abstract final class TokenMovement {
         final approach = BoardMap.approachIndex(color);
         final toApproach =
             (approach - index + BoardConstants.trackLength) %
-                BoardConstants.trackLength;
+            BoardConstants.trackLength;
         if (dice <= toApproach) {
-          return TrackPosition(
-            (index + dice) % BoardConstants.trackLength,
-          );
+          return TrackPosition((index + dice) % BoardConstants.trackLength);
         }
         final intoHome = dice - toApproach;
         if (intoHome == 1 + BoardConstants.homePathLength) {

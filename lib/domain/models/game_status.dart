@@ -4,6 +4,8 @@ enum GameStatus { lobby, active, finished }
 
 enum TurnPhase { waitingForRoll, waitingForMove, finished }
 
+enum GameMode { wifiMultiplayer, passAndPlay }
+
 enum GameErrorCode {
   invalidHostIp,
   connectionRefused,

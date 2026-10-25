@@ -6,8 +6,6 @@ import 'app.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations(const [
-    DeviceOrientation.portraitUp,
-  ]);
+  SystemChrome.setPreferredOrientations(const [DeviceOrientation.portraitUp]);
   runApp(const ProviderScope(child: LudoApp()));
 }

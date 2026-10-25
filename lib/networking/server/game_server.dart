@@ -13,17 +13,13 @@ import '../../core/debug_log.dart';
 import '../../domain/game_state/game_engine.dart';
 import '../../domain/models/game_state.dart';
 import '../../services/dice_service.dart';
+import '../protocol/event_mapper.dart';
 import '../protocol/messages.dart';
 
 typedef ServerMessageHandler = void Function(ServerMessage message);
 
 class _Session {
-  _Session({
-    required this.id,
-    this.channel,
-    this.onMessage,
-    this.playerId,
-  });
+  _Session({required this.id, this.channel, this.onMessage, this.playerId});
 
   final String id;
   final WebSocketChannel? channel;
@@ -38,8 +34,8 @@ class GameServer {
     DiceService? diceService,
     Uuid? uuid,
     this.port = NetworkConstants.serverPort,
-  })  : _dice = diceService ?? const SecureDiceService(),
-        _uuid = uuid ?? const Uuid() {
+  }) : _dice = diceService ?? const SecureDiceService(),
+       _uuid = uuid ?? const Uuid() {
     _engine = GameEngine(diceService: _dice, uuid: _uuid);
   }
 
@@ -55,6 +51,8 @@ class GameServer {
   var _actionGen = 0;
   Timer? _heartbeat;
   Timer? _aiTimer;
+  Timer? _turnClock;
+  String? _armedTurnId;
 
   GameState? get state => _state;
   bool get isRunning => _http != null || _state != null;
@@ -75,7 +73,11 @@ class GameServer {
       isAi: false,
       reconnectToken: reconnectToken,
     );
-    _state = GameState.lobby(gameId: _uuid.v4(), host: host);
+    _state = GameState.lobby(
+      gameId: _uuid.v4(),
+      host: host,
+      mode: GameMode.wifiMultiplayer,
+    );
 
     final handler = webSocketHandler((WebSocketChannel channel, _) {
       final session = _Session(id: _uuid.v4(), channel: channel);
@@ -109,6 +111,7 @@ class GameServer {
     _actionGen++;
     _heartbeat?.cancel();
     _aiTimer?.cancel();
+    _turnClock?.cancel();
     for (final session in _sessions.values) {
       try {
         session.channel?.sink.close();
@@ -186,7 +189,8 @@ class GameServer {
         case ReadyMessage():
           _mutate(
             session,
-            (state) => _engine.setReady(state, _requirePlayer(session), message.ready),
+            (state) =>
+                _engine.setReady(state, _requirePlayer(session), message.ready),
             extra: (s) => [PlayerReadyMessage(game: s.toJson())],
           );
         case ClaimColorMessage():
@@ -380,58 +384,48 @@ class GameServer {
 
   void _commit(EngineResult result) {
     _state = result.state;
-    for (final event in result.events) {
-      _broadcast(_toMessage(event, result.state));
+    for (final message in messagesFor(result)) {
+      _broadcast(message);
     }
-    _broadcast(CurrentGameStateMessage(game: result.state.toJson()));
+    _armTurnClock();
   }
 
-  ServerMessage _toMessage(EngineEvent event, GameState state) {
-    final game = state.toJson();
-    return switch (event) {
-      DiceRolledEvent() => DiceResultMessage(
-          playerId: event.playerId,
-          value: event.value,
-          turnId: event.turnId,
-          forfeited: event.forfeited,
-          game: game,
-        ),
-      ValidMovesEvent() => ValidMovesMessage(
-          tokenIds: event.tokenIds,
-          game: game,
-        ),
-      TokenMovedEvent() => TokenMovedMessage(
-          tokenId: event.tokenId,
-          from: event.from,
-          to: event.to,
-          path: event.path,
-          game: game,
-        ),
-      TokenCapturedEvent() => TokenCapturedMessage(
-          tokenId: event.tokenId,
-          byTokenId: event.byTokenId,
-          game: game,
-        ),
-      TokenReachedHomeEvent() => TokenReachedHomeMessage(
-          tokenId: event.tokenId,
-          game: game,
-        ),
-      TurnChangedEvent() => TurnChangedMessage(
-          playerId: event.playerId,
-          turnId: event.turnId,
-          turnNumber: event.turnNumber,
-          reason: event.reason,
-          game: game,
-        ),
-      PlayerWonEvent() => PlayerWonMessage(
-          playerId: event.playerId,
-          game: game,
-        ),
-      GameFinishedEvent() => GameFinishedMessage(
-          winnerId: event.winnerId,
-          game: game,
-        ),
-    };
+  void _armTurnClock() {
+    _turnClock?.cancel();
+    final state = _state;
+    if (state == null || state.status != GameStatus.active) {
+      return;
+    }
+    _armedTurnId = state.turnId;
+    _turnClock = Timer.periodic(const Duration(seconds: 1), (_) {
+      _onTurnTick();
+    });
+  }
+
+  void _onTurnTick() {
+    final state = _state;
+    if (state == null ||
+        state.turnId != _armedTurnId ||
+        state.status != GameStatus.active) {
+      _turnClock?.cancel();
+      return;
+    }
+    final ticked = _engine.tickTimer(state);
+    _state = ticked;
+    _broadcast(
+      TurnTimerUpdateMessage(
+        secondsRemaining: ticked.turnTimerSecondsRemaining,
+        turnId: ticked.turnId,
+      ),
+    );
+    if (ticked.turnTimerSecondsRemaining > 0) {
+      return;
+    }
+    _turnClock?.cancel();
+    _actionGen++;
+    final result = _engine.expireTurn(ticked);
+    _commit(result);
+    _scheduleFollowUp();
   }
 
   void _scheduleFollowUp() {
@@ -474,8 +468,11 @@ class GameServer {
           return;
         }
         _actionGen++;
-        final result =
-            _engine.moveToken(_state!, state.currentPlayerId!, tokenId);
+        final result = _engine.moveToken(
+          _state!,
+          state.currentPlayerId!,
+          tokenId,
+        );
         _commit(result);
         _scheduleFollowUp();
       });
@@ -493,8 +490,7 @@ class GameServer {
         final choice =
             _state!.validMoves[Random().nextInt(_state!.validMoves.length)];
         _actionGen++;
-        final result =
-            _engine.moveToken(_state!, player.playerId, choice);
+        final result = _engine.moveToken(_state!, player.playerId, choice);
         _commit(result);
         _scheduleFollowUp();
       });
@@ -506,7 +502,8 @@ class GameServer {
     for (final session in [..._sessions.values]) {
       _send(session, ServerPingMessage(nonce: _uuid.v4()));
       if (session.channel != null &&
-          now.difference(session.lastPong) > NetworkConstants.heartbeatTimeout) {
+          now.difference(session.lastPong) >
+              NetworkConstants.heartbeatTimeout) {
         try {
           session.channel?.sink.close();
         } catch (_) {}

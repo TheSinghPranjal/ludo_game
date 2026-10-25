@@ -48,16 +48,16 @@ class PlayerState {
   }
 
   Map<String, dynamic> toJson() => {
-        'playerId': playerId,
-        'name': name,
-        'color': color.name,
-        'isReady': isReady,
-        'isConnected': isConnected,
-        'isHost': isHost,
-        'isAi': isAi,
-        'reconnectToken': reconnectToken,
-        'rank': rank,
-      };
+    'playerId': playerId,
+    'name': name,
+    'color': color.name,
+    'isReady': isReady,
+    'isConnected': isConnected,
+    'isHost': isHost,
+    'isAi': isAi,
+    'reconnectToken': reconnectToken,
+    'rank': rank,
+  };
 
   factory PlayerState.fromJson(Map<String, dynamic> json) {
     return PlayerState(

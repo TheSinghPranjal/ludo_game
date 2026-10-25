@@ -37,9 +37,9 @@ class _JoinGameScreenState extends ConsumerState<JoinGameScreen> {
         Navigator.pushNamed(context, '/game');
       }
       if (next.hostDisconnected) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Host disconnected')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Host disconnected')));
         Navigator.popUntil(context, (route) => route.isFirst);
       }
     });
@@ -112,7 +112,8 @@ class _JoinGameScreenState extends ConsumerState<JoinGameScreen> {
                             player: game.players
                                 .where((p) => p.color == color)
                                 .firstOrNull,
-                            selected: game
+                            selected:
+                                game
                                     .playerById(session.localPlayerId ?? '')
                                     ?.color ==
                                 color,
@@ -122,14 +123,16 @@ class _JoinGameScreenState extends ConsumerState<JoinGameScreen> {
                           ),
                         ),
                       GoldButton(
-                        label: (game
+                        label:
+                            (game
                                     .playerById(session.localPlayerId ?? '')
                                     ?.isReady ??
                                 false)
                             ? 'UNREADY'
                             : 'READY',
                         onPressed: () {
-                          final ready = game
+                          final ready =
+                              game
                                   .playerById(session.localPlayerId ?? '')
                                   ?.isReady ??
                               false;
@@ -148,7 +151,10 @@ class _JoinGameScreenState extends ConsumerState<JoinGameScreen> {
                     Navigator.pop(context);
                   }
                 },
-                child: const Text('Back', style: TextStyle(color: Colors.white70)),
+                child: const Text(
+                  'Back',
+                  style: TextStyle(color: Colors.white70),
+                ),
               ),
             ],
           ),

@@ -1,9 +1,9 @@
 import '../../domain/models/game_state.dart';
 import '../../networking/protocol/messages.dart';
 
-enum SessionRole { none, host, client }
+enum SessionRole { none, host, client, passAndPlay }
 
-enum ConnectionStatus { idle, hosting, connecting, connected, error }
+enum ConnectionStatus { idle, hosting, connecting, connected, error, local }
 
 class SessionState {
   const SessionState({
@@ -34,6 +34,7 @@ class SessionState {
 
   bool get isHost => role == SessionRole.host;
   bool get isClient => role == SessionRole.client;
+  bool get isPassAndPlay => role == SessionRole.passAndPlay;
 
   SessionState copyWith({
     SessionRole? role,

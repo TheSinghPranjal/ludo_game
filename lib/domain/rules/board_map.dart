@@ -5,8 +5,7 @@ import '../models/token_state.dart';
 
 /// Logical board geometry. No pixel coordinates live here.
 abstract final class BoardMap {
-  static int startIndex(PlayerColor color) =>
-      BoardConstants.startIndex[color]!;
+  static int startIndex(PlayerColor color) => BoardConstants.startIndex[color]!;
 
   static int approachIndex(PlayerColor color) =>
       BoardConstants.approachIndex[color]!;
@@ -18,10 +17,7 @@ abstract final class BoardMap {
     return false;
   }
 
-  static (int col, int row) cellOf(
-    PlayerColor color,
-    BoardPosition position,
-  ) {
+  static (int col, int row) cellOf(PlayerColor color, BoardPosition position) {
     switch (position) {
       case BasePosition(:final slot):
         return BoardConstants.baseSlots[color]![slot];
@@ -54,7 +50,8 @@ abstract final class BoardMap {
         return BoardConstants.homePathLength - index;
       case TrackPosition(:final index):
         final approach = approachIndex(color);
-        final toApproach = (approach - index + BoardConstants.trackLength) %
+        final toApproach =
+            (approach - index + BoardConstants.trackLength) %
             BoardConstants.trackLength;
         return toApproach + 1 + BoardConstants.homePathLength;
     }

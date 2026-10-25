@@ -19,7 +19,13 @@ class HomeScreen extends StatelessWidget {
               const LudoLogo(size: 72),
               const Spacer(),
               GoldButton(
-                label: 'LOCAL MULTIPLAYER',
+                label: 'PLAY ON THIS DEVICE',
+                icon: Icons.smartphone,
+                onPressed: () => Navigator.pushNamed(context, '/hotseat'),
+              ),
+              const SizedBox(height: 16),
+              GoldButton(
+                label: 'WI-FI MULTIPLAYER',
                 icon: Icons.wifi_tethering,
                 onPressed: () => Navigator.pushNamed(context, '/local'),
               ),
@@ -31,8 +37,11 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 48),
               Text(
-                'Host-authoritative  ·  Wi-Fi / Hotspot',
-                style: TextStyle(color: AppColors.textMuted.withValues(alpha: 0.9)),
+                'Same rules  ·  Unbiased dice  ·  No internet required',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textMuted.withValues(alpha: 0.9),
+                ),
               ),
               const SizedBox(height: 24),
             ],

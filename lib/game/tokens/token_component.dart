@@ -8,6 +8,7 @@ import '../../core/constants.dart';
 import '../../domain/models/board_position.dart';
 import '../../domain/models/player_color.dart';
 import '../../domain/rules/board_map.dart';
+import 'marble_painter.dart';
 
 class TokenComponent extends PositionComponent with TapCallbacks {
   TokenComponent({
@@ -29,20 +30,37 @@ class TokenComponent extends PositionComponent with TapCallbacks {
   var animating = false;
   BoardPosition? logical;
 
+  /// Draw offset that fans out tokens sharing a square; zero when alone.
+  /// [fan] eases towards [fanTarget] so tokens slide apart and back.
+  final fan = Vector2.zero();
+  Vector2 fanTarget = Vector2.zero();
+
   void snapTo(BoardPosition position) {
     logical = position;
+    _fitTo(position);
     this.position = worldOf(color, position, slot: slot);
   }
 
-  static Vector2 worldOf(PlayerColor color, BoardPosition position, {int slot = 0}) {
+  static const _boardSize = 0.92;
+  static const _yardSize = 1.4;
+
+  /// Resting in the yard the marble is drawn large, like the yard art.
+  void _fitTo(BoardPosition position) {
+    size = Vector2.all(position is BasePosition ? _yardSize : _boardSize);
+  }
+
+  static Vector2 worldOf(
+    PlayerColor color,
+    BoardPosition position, {
+    int slot = 0,
+  }) {
+    if (position is BasePosition) {
+      final (ox, oy) = BoardConstants.yardOrigin[color]!;
+      final (dx, dy) = BoardConstants.baseSlotOffsets[position.slot];
+      return Vector2(ox + dx, oy + dy);
+    }
     final (col, row) = BoardMap.cellOf(color, position);
-    final ox = position is BasePosition || position is HomePosition
-        ? 0.0
-        : (slot.isEven ? -0.1 : 0.1);
-    final oy = position is BasePosition || position is HomePosition
-        ? 0.0
-        : (slot < 2 ? -0.1 : 0.1);
-    return Vector2(col + 0.5 + ox, row + 0.5 + oy);
+    return Vector2(col + 0.5, row + 0.5);
   }
 
   Future<void> travel(List<BoardPosition> path) async {
@@ -50,6 +68,8 @@ class TokenComponent extends PositionComponent with TapCallbacks {
       return;
     }
     animating = true;
+    fanTarget = Vector2.zero();
+    _fitTo(path.first);
     for (final step in path) {
       final dest = worldOf(color, step, slot: slot);
       final from = position.clone();
@@ -72,6 +92,7 @@ class TokenComponent extends PositionComponent with TapCallbacks {
 
   Future<void> flyTo(BoardPosition destPos) async {
     animating = true;
+    fanTarget = Vector2.zero();
     final dest = worldOf(color, destPos, slot: slot);
     final from = position.clone();
     final ms = TimingConstants.captureFlight.inMilliseconds;
@@ -84,6 +105,7 @@ class TokenComponent extends PositionComponent with TapCallbacks {
     }
     position = dest;
     logical = destPos;
+    _fitTo(destPos);
     animating = false;
   }
 
@@ -93,6 +115,7 @@ class TokenComponent extends PositionComponent with TapCallbacks {
     if (highlighted) {
       _pulse += dt * (math.pi * 2 / TimingConstants.highlightPulseSeconds);
     }
+    fan.add((fanTarget - fan)..scale(math.min(1, dt * 12)));
     if (invalidShake > 0) {
       invalidShake = math.max(0, invalidShake - dt * 8);
     }
@@ -102,91 +125,114 @@ class TokenComponent extends PositionComponent with TapCallbacks {
   void render(Canvas canvas) {
     final shake = math.sin(invalidShake * 40) * 0.04 * invalidShake;
     canvas.save();
+    canvas.translate(fan.x, fan.y);
+    canvas.save();
     canvas.translate(shake * size.x, 0);
 
     final rect = Offset.zero & Size(size.x, size.y);
     final c = rect.center;
-    final r = size.x * 0.38;
+    final r = size.x * 0.44;
 
     if (highlighted) {
-      final glow = 0.55 + 0.45 * math.sin(_pulse);
-      canvas.drawCircle(
-        c,
-        r * (1.45 + 0.12 * math.sin(_pulse)),
-        Paint()
-          ..color = AppColors.gold.withValues(alpha: 0.22 + 0.2 * glow)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
-      );
-      canvas.drawCircle(
-        c,
-        r * 1.28,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.05
-          ..color = Colors.white.withValues(alpha: 0.7 + 0.3 * glow),
-      );
+      _drawHalo(canvas, c, r);
     }
 
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: c.translate(0, r * 0.55),
-        width: r * 1.35,
-        height: r * 0.42,
-      ),
-      Paint()..color = const Color(0x66000000),
-    );
-
-    canvas.drawCircle(
-      c,
-      r,
-      Paint()
-        ..shader = RadialGradient(
-          colors: [
-            Color.lerp(AppColors.of(color), Colors.white, 0.25)!,
-            AppColors.of(color),
-            AppColors.deepOf(color),
-          ],
-          stops: const [0.15, 0.55, 1],
-          center: const Alignment(-0.35, -0.4),
-        ).createShader(Rect.fromCircle(center: c, radius: r)),
-    );
-    canvas.drawCircle(
-      c,
-      r,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.035
-        ..color = const Color(0xAA000000),
-    );
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: c.translate(-r * 0.28, -r * 0.32),
-        width: r * 0.42,
-        height: r * 0.28,
-      ),
-      Paint()..color = const Color(0xCCFFFFFF),
-    );
+    MarblePainter.paint(canvas, c, r, color);
     canvas.restore();
 
     if (highlighted) {
       _drawPointer(canvas, c, r);
     }
+    canvas.restore();
   }
 
+  static const _haloNavy = Color(0xFF0E2A80);
+  static const _haloYellow = Color(0xFFFFE03A);
+
+  /// Bright yellow ring with a navy edge so it reads on any square or
+  /// token colour, plus a pulsing outer glow.
+  void _drawHalo(Canvas canvas, Offset c, double r) {
+    final glow = 0.5 + 0.5 * math.sin(_pulse);
+    final ringR = r * (1.13 + 0.04 * glow);
+
+    canvas.drawCircle(
+      c,
+      ringR + r * 0.28,
+      Paint()
+        ..color = _haloYellow.withValues(alpha: 0.45 + 0.35 * glow)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.32),
+    );
+    canvas.drawCircle(
+      c,
+      ringR,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = r * 0.3
+        ..color = _haloNavy.withValues(alpha: 0.85),
+    );
+    canvas.drawCircle(
+      c,
+      ringR,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = r * 0.2
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFFF7B0), _haloYellow, Color(0xFFFFB300)],
+        ).createShader(Rect.fromCircle(center: c, radius: ringR)),
+    );
+    canvas.drawCircle(
+      c,
+      ringR - r * 0.1,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = r * 0.04
+        ..color = Colors.white.withValues(alpha: 0.6 + 0.4 * glow),
+    );
+  }
+
+  /// Bobbing gold arrow above the token, pointing down at it.
   void _drawPointer(Canvas canvas, Offset c, double r) {
-    final bob = math.sin(_pulse) * 0.08;
+    final bob = math.sin(_pulse) * r * 0.16;
+    final tipY = c.dy - r * 1.42 - bob;
+    final w = r * 0.5;
+    final h = r * 0.62;
     final path = Path()
-      ..moveTo(c.dx, c.dy - r * 1.85 + bob)
-      ..lineTo(c.dx - r * 0.32, c.dy - r * 1.35 + bob)
-      ..lineTo(c.dx + r * 0.32, c.dy - r * 1.35 + bob)
+      ..moveTo(c.dx, tipY)
+      ..lineTo(c.dx - w, tipY - h)
+      ..lineTo(c.dx + w, tipY - h)
       ..close();
-    canvas.drawPath(path, Paint()..color = AppColors.gold);
+    final bounds = Rect.fromLTRB(c.dx - w, tipY - h, c.dx + w, tipY);
+
+    canvas.drawPath(
+      path.shift(Offset(0, r * 0.08)),
+      Paint()..color = const Color(0x55000000),
+    );
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.03
-        ..color = AppColors.goldDeep,
+        ..strokeJoin = StrokeJoin.round
+        ..strokeWidth = r * 0.2
+        ..color = _haloNavy,
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFFF3A0), _haloYellow, Color(0xFFF59E00)],
+        ).createShader(bounds),
+    );
+    canvas.drawLine(
+      Offset(c.dx - w * 0.55, tipY - h * 0.8),
+      Offset(c.dx + w * 0.55, tipY - h * 0.8),
+      Paint()
+        ..strokeWidth = r * 0.06
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0xAAFFFFFF),
     );
   }
 
@@ -197,7 +243,7 @@ class TokenComponent extends PositionComponent with TapCallbacks {
 
   @override
   bool containsLocalPoint(Vector2 point) {
-    return (point - size / 2).length <= size.x * 0.45;
+    return (point - fan - size / 2).length <= size.x * 0.45;
   }
 
   void shake() {

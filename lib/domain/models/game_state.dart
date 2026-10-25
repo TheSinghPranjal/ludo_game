@@ -30,6 +30,9 @@ class GameState {
     this.lastCaptureTokenId,
     this.forfeitedSixes = false,
     this.finishedOrder = const [],
+    this.turnTimerSecondsRemaining = TimingConstants.turnTimerSeconds,
+    this.lastTurnWasAutoPlayed = false,
+    this.mode = GameMode.wifiMultiplayer,
   });
 
   final String gameId;
@@ -50,6 +53,9 @@ class GameState {
   final String? lastCaptureTokenId;
   final bool forfeitedSixes;
   final List<String> finishedOrder;
+  final int turnTimerSecondsRemaining;
+  final bool lastTurnWasAutoPlayed;
+  final GameMode mode;
 
   bool get isFinished => status == GameStatus.finished;
   bool get isActive => status == GameStatus.active;
@@ -105,14 +111,18 @@ class GameState {
     bool clearLastCapture = false,
     bool? forfeitedSixes,
     List<String>? finishedOrder,
+    int? turnTimerSecondsRemaining,
+    bool? lastTurnWasAutoPlayed,
+    GameMode? mode,
   }) {
     return GameState(
       gameId: gameId,
       status: status ?? this.status,
       players: players ?? this.players,
       tokens: tokens ?? this.tokens,
-      currentPlayerId:
-          clearCurrentPlayer ? null : (currentPlayerId ?? this.currentPlayerId),
+      currentPlayerId: clearCurrentPlayer
+          ? null
+          : (currentPlayerId ?? this.currentPlayerId),
       turnNumber: turnNumber ?? this.turnNumber,
       diceValue: clearDiceValue ? null : (diceValue ?? this.diceValue),
       diceRolled: diceRolled ?? this.diceRolled,
@@ -128,31 +138,39 @@ class GameState {
           : (lastCaptureTokenId ?? this.lastCaptureTokenId),
       forfeitedSixes: forfeitedSixes ?? this.forfeitedSixes,
       finishedOrder: finishedOrder ?? this.finishedOrder,
+      turnTimerSecondsRemaining:
+          turnTimerSecondsRemaining ?? this.turnTimerSecondsRemaining,
+      lastTurnWasAutoPlayed:
+          lastTurnWasAutoPlayed ?? this.lastTurnWasAutoPlayed,
+      mode: mode ?? this.mode,
     );
   }
 
   GameState bumped() => copyWith(revision: revision + 1);
 
   Map<String, dynamic> toJson() => {
-        'gameId': gameId,
-        'status': status.name,
-        'players': players.map((p) => p.toJson()).toList(),
-        'tokens': tokens.map((t) => t.toJson()).toList(),
-        'currentPlayerId': currentPlayerId,
-        'turnNumber': turnNumber,
-        'diceValue': diceValue,
-        'diceRolled': diceRolled,
-        'consecutiveSixes': consecutiveSixes,
-        'validMoves': validMoves,
-        'winnerId': winnerId,
-        'revision': revision,
-        'turnId': turnId,
-        'phase': phase.name,
-        'aiEnabled': aiEnabled,
-        'lastCaptureTokenId': lastCaptureTokenId,
-        'forfeitedSixes': forfeitedSixes,
-        'finishedOrder': finishedOrder,
-      };
+    'gameId': gameId,
+    'status': status.name,
+    'players': players.map((p) => p.toJson()).toList(),
+    'tokens': tokens.map((t) => t.toJson()).toList(),
+    'currentPlayerId': currentPlayerId,
+    'turnNumber': turnNumber,
+    'diceValue': diceValue,
+    'diceRolled': diceRolled,
+    'consecutiveSixes': consecutiveSixes,
+    'validMoves': validMoves,
+    'winnerId': winnerId,
+    'revision': revision,
+    'turnId': turnId,
+    'phase': phase.name,
+    'aiEnabled': aiEnabled,
+    'lastCaptureTokenId': lastCaptureTokenId,
+    'forfeitedSixes': forfeitedSixes,
+    'finishedOrder': finishedOrder,
+    'turnTimerSecondsRemaining': turnTimerSecondsRemaining,
+    'lastTurnWasAutoPlayed': lastTurnWasAutoPlayed,
+    'mode': mode.name,
+  };
 
   factory GameState.fromJson(Map<String, dynamic> json) {
     return GameState(
@@ -184,12 +202,20 @@ class GameState {
       finishedOrder: (json['finishedOrder'] as List? ?? const [])
           .map((e) => e as String)
           .toList(),
+      turnTimerSecondsRemaining:
+          json['turnTimerSecondsRemaining'] as int? ??
+          TimingConstants.turnTimerSeconds,
+      lastTurnWasAutoPlayed: json['lastTurnWasAutoPlayed'] as bool? ?? false,
+      mode: GameMode.values.byName(
+        json['mode'] as String? ?? GameMode.wifiMultiplayer.name,
+      ),
     );
   }
 
   static GameState lobby({
     required String gameId,
     required PlayerState host,
+    GameMode mode = GameMode.wifiMultiplayer,
   }) {
     return GameState(
       gameId: gameId,
@@ -207,6 +233,7 @@ class GameState {
       turnId: 't0',
       phase: TurnPhase.waitingForRoll,
       aiEnabled: false,
+      mode: mode,
     );
   }
 

@@ -45,11 +45,16 @@ class HostLobbyScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: AppColors.card,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.5)),
+                  border: Border.all(
+                    color: AppColors.gold.withValues(alpha: 0.5),
+                  ),
                 ),
                 child: Column(
                   children: [
-                    const Text('HOST ADDRESS', style: TextStyle(color: AppColors.gold)),
+                    const Text(
+                      'HOST ADDRESS',
+                      style: TextStyle(color: AppColors.gold),
+                    ),
                     const SizedBox(height: 6),
                     Text(
                       session.connectedHost ?? 'Starting…',
@@ -63,7 +68,10 @@ class HostLobbyScreen extends ConsumerWidget {
                       Text(
                         session.hostIps.join('  ·  '),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                        style: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 12,
+                        ),
                       ),
                     TextButton.icon(
                       onPressed: session.connectedHost == null
@@ -73,8 +81,15 @@ class HostLobbyScreen extends ConsumerWidget {
                                 ClipboardData(text: session.connectedHost!),
                               );
                             },
-                      icon: const Icon(Icons.copy, color: AppColors.gold, size: 16),
-                      label: const Text('Copy', style: TextStyle(color: AppColors.gold)),
+                      icon: const Icon(
+                        Icons.copy,
+                        color: AppColors.gold,
+                        size: 16,
+                      ),
+                      label: const Text(
+                        'Copy',
+                        style: TextStyle(color: AppColors.gold),
+                      ),
                     ),
                   ],
                 ),
@@ -98,7 +113,9 @@ class HostLobbyScreen extends ConsumerWidget {
                           player: game?.players
                               .where((p) => p.color == color)
                               .firstOrNull,
-                          selected: game?.playerById(session.localPlayerId ?? '')
+                          selected:
+                              game
+                                  ?.playerById(session.localPlayerId ?? '')
                                   ?.color ==
                               color,
                           onTap: () => ref
@@ -126,12 +143,16 @@ class HostLobbyScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: GoldButton(
-                      label: (game?.playerById(session.localPlayerId ?? '')?.isReady ??
+                      label:
+                          (game
+                                  ?.playerById(session.localPlayerId ?? '')
+                                  ?.isReady ??
                               false)
                           ? 'UNREADY'
                           : 'READY',
                       onPressed: () {
-                        final ready = game
+                        final ready =
+                            game
                                 ?.playerById(session.localPlayerId ?? '')
                                 ?.isReady ??
                             false;
@@ -164,7 +185,10 @@ class HostLobbyScreen extends ConsumerWidget {
                     Navigator.pop(context);
                   }
                 },
-                child: const Text('Leave', style: TextStyle(color: Colors.white70)),
+                child: const Text(
+                  'Leave',
+                  style: TextStyle(color: Colors.white70),
+                ),
               ),
             ],
           ),

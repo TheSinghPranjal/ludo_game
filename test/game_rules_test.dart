@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ludo_game/core/constants.dart';
 import 'package:ludo_game/domain/game_state/game_engine.dart';
 import 'package:ludo_game/domain/models/game_state.dart';
+import 'package:ludo_game/domain/rules/board_map.dart';
 import 'package:ludo_game/domain/rules/game_rules.dart';
 import 'package:ludo_game/domain/rules/movement.dart';
 import 'package:ludo_game/services/dice_service.dart';
@@ -58,8 +59,8 @@ TokenState _token(
     state: position is BasePosition
         ? TokenLogicalState.base
         : position is HomePosition
-            ? TokenLogicalState.home
-            : TokenLogicalState.active,
+        ? TokenLogicalState.home
+        : TokenLogicalState.active,
   );
 }
 
@@ -142,7 +143,10 @@ void main() {
       final engine = _engine([1]);
       final after = engine.rollDice(_started(engine), 'g').state;
       expect(after.currentPlayerId, 'y');
-      expect(after.tokensFor('g').every((t) => t.state == TokenLogicalState.base), isTrue);
+      expect(
+        after.tokensFor('g').every((t) => t.state == TokenLogicalState.base),
+        isTrue,
+      );
     });
 
     test('6 with tokens in base enters start', () {
@@ -172,16 +176,16 @@ void main() {
     test('wrong player cannot roll or move', () {
       final engine = _engine([6]);
       final state = _started(engine);
-      expect(
-        () => engine.rollDice(state, 'y'),
-        throwsA(isA<GameException>()),
-      );
+      expect(() => engine.rollDice(state, 'y'), throwsA(isA<GameException>()));
     });
 
     test('client cannot fabricate dice or positions', () {
       final engine = _engine([1]);
       final state = _started(engine);
-      expect(() => engine.rejectFabricatedDice(state), throwsA(isA<GameException>()));
+      expect(
+        () => engine.rejectFabricatedDice(state),
+        throwsA(isA<GameException>()),
+      );
       expect(
         () => engine.rejectFabricatedPosition(state),
         throwsA(isA<GameException>()),
@@ -196,10 +200,7 @@ void main() {
         phase: TurnPhase.finished,
         winnerId: 'g',
       );
-      expect(
-        () => engine.rollDice(state, 'g'),
-        throwsA(isA<GameException>()),
-      );
+      expect(() => engine.rollDice(state, 'g'), throwsA(isA<GameException>()));
     });
   });
 
@@ -209,13 +210,48 @@ void main() {
       var state = _started(engine);
       final tokens = [
         _token('green_0', 'g', PlayerColor.green, const BoardPosition.track(4)),
-        _token('green_1', 'g', PlayerColor.green, const BoardPosition.base(slot: 1)),
-        _token('green_2', 'g', PlayerColor.green, const BoardPosition.base(slot: 2)),
-        _token('green_3', 'g', PlayerColor.green, const BoardPosition.base(slot: 3)),
-        _token('yellow_0', 'y', PlayerColor.yellow, const BoardPosition.track(5)),
-        _token('yellow_1', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 1)),
-        _token('yellow_2', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 2)),
-        _token('yellow_3', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 3)),
+        _token(
+          'green_1',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 1),
+        ),
+        _token(
+          'green_2',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 2),
+        ),
+        _token(
+          'green_3',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 3),
+        ),
+        _token(
+          'yellow_0',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.track(5),
+        ),
+        _token(
+          'yellow_1',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 1),
+        ),
+        _token(
+          'yellow_2',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 2),
+        ),
+        _token(
+          'yellow_3',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 3),
+        ),
       ];
       state = state.copyWith(
         tokens: tokens,
@@ -243,13 +279,43 @@ void main() {
       const safe = BoardPosition.track(8);
       final tokens = [
         _token('green_0', 'g', PlayerColor.green, const BoardPosition.track(7)),
-        _token('green_1', 'g', PlayerColor.green, const BoardPosition.base(slot: 1)),
-        _token('green_2', 'g', PlayerColor.green, const BoardPosition.base(slot: 2)),
-        _token('green_3', 'g', PlayerColor.green, const BoardPosition.base(slot: 3)),
+        _token(
+          'green_1',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 1),
+        ),
+        _token(
+          'green_2',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 2),
+        ),
+        _token(
+          'green_3',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 3),
+        ),
         _token('yellow_0', 'y', PlayerColor.yellow, safe),
-        _token('yellow_1', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 1)),
-        _token('yellow_2', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 2)),
-        _token('yellow_3', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 3)),
+        _token(
+          'yellow_1',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 1),
+        ),
+        _token(
+          'yellow_2',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 2),
+        ),
+        _token(
+          'yellow_3',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 3),
+        ),
       ];
       state = state.copyWith(
         tokens: tokens,
@@ -269,12 +335,42 @@ void main() {
       final tokens = [
         _token('green_0', 'g', PlayerColor.green, const BoardPosition.track(2)),
         _token('green_1', 'g', PlayerColor.green, const BoardPosition.track(3)),
-        _token('green_2', 'g', PlayerColor.green, const BoardPosition.base(slot: 2)),
-        _token('green_3', 'g', PlayerColor.green, const BoardPosition.base(slot: 3)),
-        _token('yellow_0', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 0)),
-        _token('yellow_1', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 1)),
-        _token('yellow_2', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 2)),
-        _token('yellow_3', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 3)),
+        _token(
+          'green_2',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 2),
+        ),
+        _token(
+          'green_3',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 3),
+        ),
+        _token(
+          'yellow_0',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 0),
+        ),
+        _token(
+          'yellow_1',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 1),
+        ),
+        _token(
+          'yellow_2',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 2),
+        ),
+        _token(
+          'yellow_3',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 3),
+        ),
       ];
       state = state.copyWith(
         tokens: tokens,
@@ -289,19 +385,123 @@ void main() {
     });
   });
 
+  group('home path', () {
+    test('tokens on different colors\' home columns never interact', () {
+      final engine = _engine([1]);
+      var state = _started(engine);
+      final tokens = [
+        _token(
+          'green_0',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.homePath(1),
+        ),
+        _token(
+          'green_1',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 1),
+        ),
+        _token(
+          'green_2',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 2),
+        ),
+        _token(
+          'green_3',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 3),
+        ),
+        _token(
+          'yellow_0',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.homePath(2),
+        ),
+        _token(
+          'yellow_1',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.homePath(2),
+        ),
+        _token(
+          'yellow_2',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 2),
+        ),
+        _token(
+          'yellow_3',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 3),
+        ),
+      ];
+      state = state.copyWith(
+        tokens: tokens,
+        diceValue: 1,
+        diceRolled: true,
+        phase: TurnPhase.waitingForMove,
+      );
+      // Yellow's pair on its own column must not block green's column.
+      expect(GameRules.validMoves(state), ['green_0']);
+      state = state.copyWith(validMoves: const ['green_0']);
+      state = engine.moveToken(state, 'g', 'green_0').state;
+      expect(
+        state.tokenById('green_0').position,
+        const BoardPosition.homePath(2),
+      );
+      expect(
+        state.tokenById('yellow_0').position,
+        const BoardPosition.homePath(2),
+      );
+      expect(
+        state.tokenById('yellow_1').position,
+        const BoardPosition.homePath(2),
+      );
+    });
+  });
+
   group('home and winner', () {
     test('token reaching home and all four wins', () {
       final engine = _engine([1]);
       var state = _started(engine);
       final tokens = [
-        _token('green_0', 'g', PlayerColor.green, const BoardPosition.homePath(4)),
+        _token(
+          'green_0',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.homePath(4),
+        ),
         _token('green_1', 'g', PlayerColor.green, const BoardPosition.home()),
         _token('green_2', 'g', PlayerColor.green, const BoardPosition.home()),
         _token('green_3', 'g', PlayerColor.green, const BoardPosition.home()),
-        _token('yellow_0', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 0)),
-        _token('yellow_1', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 1)),
-        _token('yellow_2', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 2)),
-        _token('yellow_3', 'y', PlayerColor.yellow, const BoardPosition.base(slot: 3)),
+        _token(
+          'yellow_0',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 0),
+        ),
+        _token(
+          'yellow_1',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 1),
+        ),
+        _token(
+          'yellow_2',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 2),
+        ),
+        _token(
+          'yellow_3',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 3),
+        ),
       ];
       state = state.copyWith(
         tokens: tokens,
@@ -312,6 +512,9 @@ void main() {
       );
       final result = engine.moveToken(state, 'g', 'green_0');
       expect(result.state.winnerId, 'g');
+      expect(result.state.finishedOrder, ['g', 'y']);
+      expect(result.state.playerById('g')!.rank, 1);
+      expect(result.state.playerById('y')!.rank, 2);
       expect(result.state.status, GameStatus.finished);
       expect(result.events.whereType<PlayerWonEvent>(), isNotEmpty);
     });
@@ -330,9 +533,172 @@ void main() {
     test('track has 52 cells and starts 13 apart', () {
       expect(BoardConstants.trackCells, hasLength(52));
       expect(BoardConstants.startIndex[PlayerColor.green], 0);
-      expect(BoardConstants.startIndex[PlayerColor.red], 13);
+      expect(BoardConstants.startIndex[PlayerColor.yellow], 13);
       expect(BoardConstants.startIndex[PlayerColor.blue], 26);
-      expect(BoardConstants.startIndex[PlayerColor.yellow], 39);
+      expect(BoardConstants.startIndex[PlayerColor.red], 39);
+    });
+
+    test('track is a closed loop of adjacent cells', () {
+      final cells = BoardConstants.trackCells;
+      expect(cells.toSet(), hasLength(cells.length));
+      for (var i = 0; i < cells.length; i++) {
+        final a = cells[i];
+        final b = cells[(i + 1) % cells.length];
+        final dist = (a.$1 - b.$1).abs() + (a.$2 - b.$2).abs();
+        expect(dist <= 2 && a != b, isTrue, reason: 'gap at track $i');
+      }
+    });
+
+    test(
+      'each color starts beside its own yard and walks home in 57 steps',
+      () {
+        for (final color in PlayerColor.values) {
+          final (yc, yr) = BoardConstants.yardOrigin[color]!;
+          final (sc, sr) =
+              BoardConstants.trackCells[BoardMap.startIndex(color)];
+          final besideYard =
+              (sc >= yc - 1 && sc <= yc + 6) && (sr >= yr - 1 && sr <= yr + 6);
+          expect(besideYard, isTrue, reason: '$color start not by its yard');
+
+          final path = BoardMap.walk(
+            color: color,
+            from: const BoardPosition.base(slot: 0),
+            to: BoardPosition.track(BoardMap.startIndex(color)),
+          );
+          expect(path, hasLength(1));
+          final lap = BoardMap.walk(
+            color: color,
+            from: BoardPosition.track(BoardMap.startIndex(color)),
+            to: const BoardPosition.home(),
+          );
+          expect(lap, hasLength(56));
+          // The home column continues straight on from the approach square.
+          final approach =
+              BoardConstants.trackCells[BoardMap.approachIndex(color)];
+          final firstHome = BoardConstants.homePathCells[color]!.first;
+          expect(
+            (approach.$1 - firstHome.$1).abs() +
+                (approach.$2 - firstHome.$2).abs(),
+            1,
+          );
+        }
+      },
+    );
+
+    test('turn order goes clockwise around the yards', () {
+      expect(BoardConstants.turnOrder, [
+        PlayerColor.green,
+        PlayerColor.yellow,
+        PlayerColor.blue,
+        PlayerColor.red,
+      ]);
+      expect(BoardConstants.seatColors(2), [
+        PlayerColor.green,
+        PlayerColor.blue,
+      ]);
+    });
+  });
+
+  group('turn timer auto-play', () {
+    test('timer starts at 30 and extra turns reset it', () {
+      final engine = _engine([6]);
+      var state = _started(engine);
+      expect(state.turnTimerSecondsRemaining, 30);
+      state = engine.tickTimer(state);
+      expect(state.turnTimerSecondsRemaining, 29);
+      state = engine.rollDice(state, 'g').state;
+      state = engine.moveToken(state, 'g', 'green_0').state;
+      expect(state.currentPlayerId, 'g');
+      expect(state.turnTimerSecondsRemaining, 30);
+    });
+
+    test('timeout with 1-5 and all in base passes the turn', () {
+      final engine = _engine([2]);
+      var state = _started(engine);
+      final result = engine.expireTurn(state);
+      expect(result.state.currentPlayerId, 'y');
+      expect(
+        result.state
+            .tokensFor('g')
+            .every((t) => t.state == TokenLogicalState.base),
+        isTrue,
+      );
+      expect(result.events.whereType<TurnAutoPlayedEvent>(), isNotEmpty);
+    });
+
+    test('timeout with 6 enters a token from base', () {
+      final engine = _engine([6]);
+      var state = _started(engine);
+      final result = engine.expireTurn(state);
+      expect(
+        result.state.tokenById('green_0').position,
+        const BoardPosition.track(0),
+      );
+      expect(result.events.whereType<DiceRolledEvent>().single.value, 6);
+      expect(
+        result.events.whereType<TurnAutoPlayedEvent>().single.tokenId,
+        isNotNull,
+      );
+    });
+
+    test('pickAutoMove prefers capture over leaving base', () {
+      final engine = _engine([6]);
+      var state = _started(engine);
+      final tokens = [
+        _token('green_0', 'g', PlayerColor.green, const BoardPosition.track(0)),
+        _token(
+          'green_1',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 1),
+        ),
+        _token(
+          'green_2',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 2),
+        ),
+        _token(
+          'green_3',
+          'g',
+          PlayerColor.green,
+          const BoardPosition.base(slot: 3),
+        ),
+        _token(
+          'yellow_0',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.track(6),
+        ),
+        _token(
+          'yellow_1',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 1),
+        ),
+        _token(
+          'yellow_2',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 2),
+        ),
+        _token(
+          'yellow_3',
+          'y',
+          PlayerColor.yellow,
+          const BoardPosition.base(slot: 3),
+        ),
+      ];
+      state = state.copyWith(
+        tokens: tokens,
+        diceValue: 6,
+        diceRolled: true,
+        phase: TurnPhase.waitingForMove,
+        validMoves: const ['green_0', 'green_1'],
+      );
+      expect(GameRules.pickAutoMove(state), 'green_0');
+      final expired = engine.expireTurn(state);
+      expect(expired.state.tokenById('yellow_0').state, TokenLogicalState.base);
     });
   });
 }
