@@ -260,6 +260,7 @@ class GoldButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.expanded = true,
+    this.chevron = false,
   });
 
   final String label;
@@ -267,10 +268,37 @@ class GoldButton extends StatelessWidget {
   final IconData? icon;
   final bool expanded;
 
+  /// Shows a ">" pinned to the right edge, with the label kept centred.
+  final bool chevron;
+
   static const _radius = BorderRadius.all(Radius.circular(22));
 
   @override
   Widget build(BuildContext context) {
+    final content = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
+      children: [
+        if (icon != null) ...[
+          Icon(icon, color: AppColors.buttonText, size: 28),
+          const SizedBox(width: 8),
+        ],
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              maxLines: 1,
+              style: AppFonts.uiStyle(
+                size: 22,
+                weight: 900,
+                color: AppColors.buttonText,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
     final child = DecoratedBox(
       decoration: const BoxDecoration(
         color: Color(0xFFD98A00),
@@ -305,30 +333,25 @@ class GoldButton extends StatelessWidget {
                   horizontal: 12,
                   vertical: 12,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
-                  children: [
-                    if (icon != null) ...[
-                      Icon(icon, color: AppColors.buttonText, size: 28),
-                      const SizedBox(width: 8),
-                    ],
-                    Flexible(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          label,
-                          maxLines: 1,
-                          style: AppFonts.uiStyle(
-                            size: 22,
-                            weight: 900,
-                            color: AppColors.buttonText,
+                child: chevron
+                    ? Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 28),
+                            child: content,
                           ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                          const Align(
+                            alignment: Alignment.centerRight,
+                            child: Icon(
+                              Icons.chevron_right_rounded,
+                              color: AppColors.buttonText,
+                              size: 30,
+                            ),
+                          ),
+                        ],
+                      )
+                    : content,
               ),
             ),
           ),
