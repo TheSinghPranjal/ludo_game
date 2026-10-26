@@ -134,9 +134,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           case TurnAutoPlayedMessage(:final playerId):
             final player = next.game?.playerById(playerId);
             _showBanner('Time up! Auto-played for ${player?.name ?? 'player'}');
-          case TurnChangedMessage(reason: 'no_valid_move'):
-            final player = next.game?.playerById(_lastRollerId ?? '');
-            _showBanner('No moves for ${player?.name ?? 'player'}');
           case TurnChangedMessage(reason: 'home', :final playerId):
             final player = next.game?.playerById(playerId);
             _showBanner('Token home! ${player?.name ?? 'Player'} rolls again');
