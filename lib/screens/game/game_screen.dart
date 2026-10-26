@@ -122,7 +122,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         if (next.lastEvent case DiceResultMessage(:final playerId)) {
           _lastRollerId = playerId;
           setState(() => _rolling = true);
+          _game.diceRolling = true;
           Future<void>.delayed(TimingConstants.diceAnimation, () {
+            _game.diceRolling = false;
             if (mounted) {
               setState(() => _rolling = false);
             }
@@ -135,6 +137,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           case TurnChangedMessage(reason: 'no_valid_move'):
             final player = next.game?.playerById(_lastRollerId ?? '');
             _showBanner('No moves for ${player?.name ?? 'player'}');
+          case TurnChangedMessage(reason: 'home', :final playerId):
+            final player = next.game?.playerById(playerId);
+            _showBanner('Token home! ${player?.name ?? 'Player'} rolls again');
           case TurnChangedMessage(reason: 'three_sixes'):
             final player = next.game?.playerById(_lastRollerId ?? '');
             _showBanner(

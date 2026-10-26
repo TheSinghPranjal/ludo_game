@@ -519,6 +519,56 @@ void main() {
       expect(result.events.whereType<PlayerWonEvent>(), isNotEmpty);
     });
 
+    GameState homeRun(GameEngine engine, BoardPosition from) {
+      final state = _started(engine);
+      return state.copyWith(
+        tokens: [
+          _token('green_0', 'g', PlayerColor.green, from),
+          for (var i = 1; i < 4; i++)
+            _token(
+              'green_$i',
+              'g',
+              PlayerColor.green,
+              BoardPosition.base(slot: i),
+            ),
+          for (var i = 0; i < 4; i++)
+            _token(
+              'yellow_$i',
+              'y',
+              PlayerColor.yellow,
+              BoardPosition.base(slot: i),
+            ),
+        ],
+        diceValue: 1,
+        diceRolled: true,
+        phase: TurnPhase.waitingForMove,
+        validMoves: const ['green_0'],
+      );
+    }
+
+    test('token reaching home (not the last) grants an extra turn', () {
+      final engine = _engine([1]);
+      final result = engine.moveToken(
+        homeRun(engine, const BoardPosition.homePath(4)),
+        'g',
+        'green_0',
+      );
+      expect(result.state.status, GameStatus.active);
+      expect(result.state.currentPlayerId, 'g');
+      expect(result.state.canRoll, isTrue);
+      expect(result.events.whereType<TurnChangedEvent>().single.reason, 'home');
+    });
+
+    test('a move that stops short of home passes the turn', () {
+      final engine = _engine([1]);
+      final result = engine.moveToken(
+        homeRun(engine, const BoardPosition.homePath(3)),
+        'g',
+        'green_0',
+      );
+      expect(result.state.currentPlayerId, 'y');
+    });
+
     test('start without enough players fails', () {
       final engine = _engine([]);
       final state = GameState.lobby(

@@ -104,6 +104,7 @@ abstract final class GameRules {
     required int diceValue,
     required bool captured,
     required int consecutiveSixes,
+    bool reachedHome = false,
   }) {
     if (consecutiveSixes >= RuleConstants.maxConsecutiveSixes) {
       return false;
@@ -112,6 +113,9 @@ abstract final class GameRules {
       return true;
     }
     if (RuleConstants.extraTurnOnCapture && captured) {
+      return true;
+    }
+    if (RuleConstants.extraTurnOnHome && reachedHome) {
       return true;
     }
     return false;

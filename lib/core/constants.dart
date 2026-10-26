@@ -223,6 +223,9 @@ abstract final class RuleConstants {
   static const diceFaces = 6;
   static const extraTurnOnSix = true;
   static const extraTurnOnCapture = true;
+
+  /// A token reaching home earns another roll (unless it wins the game).
+  static const extraTurnOnHome = true;
   static const maxConsecutiveSixes = 3;
   static const leaveBaseRequires = 6;
 }

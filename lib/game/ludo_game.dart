@@ -44,6 +44,25 @@ class LudoFlameGame extends FlameGame {
   /// Completes once every queued animation has finished.
   Future<void> get settled => _animations;
 
+  /// Whose yard should blink once the current roll has played out.
+  PlayerColor? _turnColor;
+  var _diceRolling = false;
+
+  /// Keeps the turn highlight on the roller until the dice settles.
+  set diceRolling(bool value) {
+    _diceRolling = value;
+    _applyTurnHighlight();
+  }
+
+  /// Moves the highlight to the next player only once the dice has stopped
+  /// and every token has finished moving.
+  void _applyTurnHighlight() {
+    if (_diceRolling || _pending.isNotEmpty) {
+      return;
+    }
+    _turnHighlight.color = _turnColor;
+  }
+
   @override
   Color backgroundColor() => const Color(0x00000000);
 
@@ -88,9 +107,10 @@ class LudoFlameGame extends FlameGame {
       for (final color in PlayerColor.values)
         if (state.players.every((p) => p.color != color)) color,
     };
-    _turnHighlight.color = state.status == GameStatus.active
+    _turnColor = state.status == GameStatus.active
         ? state.currentPlayer?.color
         : null;
+    _applyTurnHighlight();
     final highlight = <String>{};
     if (state.currentPlayerId == localPlayerId) {
       highlight.addAll(state.validMoves);
@@ -188,6 +208,7 @@ class LudoFlameGame extends FlameGame {
         }
         _relayout();
         busy.value = _pending.isNotEmpty;
+        _applyTurnHighlight();
       }
     });
   }

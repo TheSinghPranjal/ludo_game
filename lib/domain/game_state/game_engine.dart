@@ -466,6 +466,7 @@ class GameEngine {
       diceValue: dice,
       captured: captured.isNotEmpty,
       consecutiveSixes: next.consecutiveSixes,
+      reachedHome: dest is HomePosition,
     );
     if (extra) {
       next = _prepareExtraRoll(next);
@@ -474,7 +475,11 @@ class GameEngine {
           playerId: playerId,
           turnId: next.turnId,
           turnNumber: next.turnNumber,
-          reason: captured.isNotEmpty ? 'capture' : 'six',
+          reason: captured.isNotEmpty
+              ? 'capture'
+              : dest is HomePosition
+              ? 'home'
+              : 'six',
         ),
       );
     } else {
