@@ -24,43 +24,20 @@ abstract final class GameRules {
     return movable;
   }
 
+  /// Any token whose roll fits on the board can move; opponent stacks
+  /// never block.
   static bool _canMoveToken(
     GameState state,
     TokenState token,
     PlayerColor color,
     int dice,
   ) {
-    final dest = TokenMovement.destination(
-      color: color,
-      current: token.position,
-      dice: dice,
-    );
-    if (dest == null) {
-      return false;
-    }
-    return !_isBlockedByOpponentStack(state, token, dest);
-  }
-
-  static bool _isBlockedByOpponentStack(
-    GameState state,
-    TokenState mover,
-    BoardPosition dest,
-  ) {
-    if (dest is HomePosition || dest is BasePosition) {
-      return false;
-    }
-    final occupants = tokensAt(
-      state,
-      dest,
-    ).where((t) => t.playerId != mover.playerId).toList();
-    if (occupants.isEmpty) {
-      return false;
-    }
-    final byPlayer = <String, int>{};
-    for (final token in occupants) {
-      byPlayer[token.playerId] = (byPlayer[token.playerId] ?? 0) + 1;
-    }
-    return byPlayer.values.any((count) => count >= 2);
+    return TokenMovement.destination(
+          color: color,
+          current: token.position,
+          dice: dice,
+        ) !=
+        null;
   }
 
   /// Tokens sharing a main-track square. Base, home path and home are private
@@ -80,24 +57,11 @@ abstract final class GameRules {
     if (BoardMap.isSafe(dest) || dest is HomePosition || dest is BasePosition) {
       return const [];
     }
-    final opponents = tokensAt(
+    // Every opponent on an unsafe square is sent home, stacked or not.
+    return tokensAt(
       state,
       dest,
     ).where((t) => t.playerId != mover.playerId).toList();
-    if (opponents.isEmpty) {
-      return const [];
-    }
-    final byPlayer = <String, List<TokenState>>{};
-    for (final token in opponents) {
-      byPlayer.putIfAbsent(token.playerId, () => []).add(token);
-    }
-    final captured = <TokenState>[];
-    for (final group in byPlayer.values) {
-      if (group.length == 1) {
-        captured.add(group.single);
-      }
-    }
-    return captured;
   }
 
   static bool grantsExtraTurn({

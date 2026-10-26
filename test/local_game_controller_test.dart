@@ -41,23 +41,11 @@ void _expectConsistent(GameState state) {
     }
   }
   for (final entry in byCell.entries) {
-    if (entry.value.length > 1) {
-      final counts = {
-        for (final id in entry.value)
-          id: state.tokens
-              .where(
-                (t) =>
-                    t.playerId == id && t.position == TrackPosition(entry.key),
-              )
-              .length,
-      };
-      // Only a blockade (2+ of one colour) can share with another colour.
-      expect(
-        counts.values.where((c) => c == 1).length <= 1,
-        isTrue,
-        reason: 'uncaptured opponents on track ${entry.key}: $counts',
-      );
-    }
+    expect(
+      entry.value.length,
+      1,
+      reason: 'uncaptured opponents on track ${entry.key}: ${entry.value}',
+    );
   }
   for (final token in state.tokens) {
     final isHome = token.position is HomePosition;
