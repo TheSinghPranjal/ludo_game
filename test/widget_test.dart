@@ -8,7 +8,7 @@ import 'package:ludo_game/state/providers/session_provider.dart';
 
 void main() {
   testWidgets('home screen shows both play modes', (tester) async {
-    await tester.pumpWidget(const ProviderScope(child: LudoApp()));
+    await pumpHome(tester);
     expect(find.text('PLAY ON THIS DEVICE'), findsOneWidget);
     expect(find.text('WI-FI MULTIPLAYER'), findsOneWidget);
     expect(find.text('SETTINGS'), findsOneWidget);
@@ -19,7 +19,7 @@ void main() {
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(const ProviderScope(child: LudoApp()));
+    await pumpHome(tester);
     await tester.tap(find.text('PLAY ON THIS DEVICE'));
     await tester.pumpAndSettle();
 
@@ -57,4 +57,11 @@ void main() {
     expect(find.text('PLAY ON THIS DEVICE'), findsOneWidget);
     expect(container.read(sessionProvider).game, isNull);
   });
+}
+
+/// Pumps the app past the splash hold and the fade into home.
+Future<void> pumpHome(WidgetTester tester) async {
+  await tester.pumpWidget(const ProviderScope(child: LudoApp()));
+  await tester.pump(TimingConstants.splashHold);
+  await tester.pumpAndSettle();
 }

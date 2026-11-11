@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'core/constants.dart';
 import 'screens/game/game_screen.dart';
-import 'screens/home/home_screen.dart';
 import 'screens/hotseat/pass_and_play_setup_screen.dart';
 import 'screens/lobby/host_lobby_screen.dart';
 import 'screens/lobby/join_game_screen.dart';
 import 'screens/multiplayer/local_multiplayer_screen.dart';
 import 'screens/result/result_screen.dart';
 import 'screens/settings/settings_screen.dart';
+import 'screens/splash/splash_screen.dart';
 
 class LudoApp extends StatelessWidget {
   const LudoApp({super.key});
@@ -29,7 +29,7 @@ class LudoApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (_) => const HomeScreen(),
+        '/': (_) => const SplashScreen(),
         '/hotseat': (_) => const PassAndPlaySetupScreen(),
         '/local': (_) => const LocalMultiplayerScreen(),
         '/host': (_) => const HostLobbyScreen(),

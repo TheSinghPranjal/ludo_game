@@ -207,6 +207,11 @@ abstract final class NetworkConstants {
 }
 
 abstract final class TimingConstants {
+  /// How long the in-app splash stays up before fading into home.
+  static const splashHold = Duration(milliseconds: 2000);
+  static const splashEntrance = Duration(milliseconds: 500);
+  static const splashFade = Duration(milliseconds: 400);
+
   static const diceAnimation = Duration(milliseconds: 700);
   static const tokenStep = Duration(milliseconds: 160);
   static const tokenBounce = Duration(milliseconds: 70);
