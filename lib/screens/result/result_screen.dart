@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,6 +8,7 @@ import '../../domain/models/game_state.dart';
 import '../../game/tokens/marble_painter.dart';
 import '../../state/providers/session_provider.dart';
 import '../../state/session_state.dart';
+import '../../services/review/in_app_review_service.dart';
 import '../widgets/game_background.dart';
 import '../widgets/ludo_logo.dart';
 import 'victory_art.dart';
@@ -30,6 +33,15 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     vsync: this,
     duration: const Duration(milliseconds: 1500),
   )..forward();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(ref.read(inAppReviewServiceProvider).onGameCompleted());
+    });
+  }
 
   @override
   void dispose() {
